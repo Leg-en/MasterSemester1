@@ -1,0 +1,142 @@
+---
+title: "Intro R"
+author: "Edzer Pebesma"
+date: "10/13/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(sf)
+nc = system.file("gpkg/nc.gpkg", package = "sf") |>
+    read_sf()
+nc.32119 <- st_transform(nc, 'EPSG:32119')
+nc.32119 |>
+    select(BIR74) |>
+    plot()
+```
+## R objects
+
+"Everything that is, is an object"
+
+Assignment: these two are equivalent
+```{r}
+a = 3
+a <- 3
+```
+Vectors: logical, numeric (integer/double), character, raw, list 
+
+```{r}
+a = 3L
+typeof(a)
+a = 3.0
+typeof(a)
+a = 3
+typeof(a)
+(a = 1:3)
+typeof(a)
+```
+
+### attributes
+
+```{r}
+a = 2
+attr(a, "foo") = "bar"
+a
+```
+
+short form:
+
+```{r}
+(a = structure(2, foo = "bar"))
+attributes(a) # list all
+attr(a, "foo")
+attr(a, "bar")
+```
+
+### special attributes: names, dim, class
+
+```{r}
+a = 1:3
+names(a) = c("a", "b", "c")
+a
+c(a = 1, b = 2, c = 3)
+```
+
+```{r}
+
+```
+
+### composite types: `factor`, `POSIXct`, `Date`, `difftime`, `data.frame`
+
+```{r}
+a = c("a", "a", "b", "c", "a", "a")
+a
+b = factor(a)
+```
+* all "scalar" objects are really vectors of length one. Almost all functions work on vectors.
+* recycle rule: in
+
+```{r}
+a = 1:3
+a + 1
+```
+the vector `1` is recycled to the length of `a`. There are catches:
+```{r}
+a = 1:4
+a + 1:2
+```
+
+
+
+## Environments, Global Environment
+
+By default, objects created are stored in the global environment, which is queried by
+```{r}
+ls()
+```
+
+## R functions
+
+"Everything that does something, is a function call"
+
+```{r}
+3 + 4
+```
+is equivalent to 
+```{r}
+`+`(3, 4)
+```
+and we can even redefine
+```{r}
+`+`  = `-`
+3 + 4
+```
+and remove this
+```{r}
+rm(`+`)
+```
+
+### pipes
+
+## Spatial objects
+
+```{r}
+library(sf)
+```
+
+```{r}
+s = st_sf(a = 1:3, b = c("a", "x", "y"), 
+      geom = st_sfc(st_point(c(1,2)), st_point(c(3,2)), st_point(c(4,0))),
+      crs = 'EPSG:4326')
+s
+attributes(s)
+```
+
+## Tidyverse
+
