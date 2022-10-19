@@ -22,16 +22,16 @@ if __name__ == "__main__":
     ga = GeneticAlgorithm(problem_instance=hiking_problem,
                           random_state=random_state,
                           initial_solution=start_solution,
-                          population_size = 20,
-                          selection = tournament_selection,
-                          crossover = geometrical_crossover,
-                          crossover_probability = 0.8,
-                          mutation = ball_mutation,
-                          mutation_probability = 0.1,
-                          survival = select_best_from_parents_and_children
+                          population_size=40,
+                          selection=tournament_selection,
+                          crossover=geometrical_crossover,
+                          crossover_probability=0.8,
+                          mutation=ball_mutation,
+                          mutation_probability=0.1,
+                          survival=select_best_from_parents_and_children
                           )
     max_stepsize_for_ballmutation = 0.1
-    ga_solutions = ga.search(n_iterations = 20, max_stepsize = max_stepsize_for_ballmutation)
+    ga_solutions = ga.search(n_iterations=20, max_stepsize=max_stepsize_for_ballmutation)
 
     # set up an empty plot
     fig = plt.figure()
@@ -43,4 +43,3 @@ if __name__ == "__main__":
         ax = plot_position(ax, ga_solutions[i].representation, color='black', size=5)
     # show the plots
     plt.show()
-
