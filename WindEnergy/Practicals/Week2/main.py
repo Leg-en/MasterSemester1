@@ -22,7 +22,7 @@ if __name__ == "__main__":
     ga = GeneticAlgorithm(problem_instance=hiking_problem,
                           random_state=random_state,
                           initial_solution=start_solution,
-                          population_size=40,
+                          population_size=200,
                           selection=tournament_selection,
                           crossover=geometrical_crossover,
                           crossover_probability=0.8,

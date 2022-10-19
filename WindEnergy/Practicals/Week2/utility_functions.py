@@ -3,15 +3,17 @@ import numpy as np
 from solution import Solution
 from problem import Point
 import heapq
-from scipy.spatial import distance
 import math
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 
 # plot function for the 'mountain'
 def plot_mountain(fig, X, Y):
     X, Y = np.meshgrid(X, Y)
     Z = (X ** 2 - 10 * np.cos(2 * np.pi * X)) + (Y ** 2 - 10 * np.cos(2 * np.pi * Y)) + 20
-    ax = fig.gca(projection='3d')
+    #ax = fig.gca(projection='3d')
+    ax = fig.add_subplot(projection='3d')
     ax.plot_surface(X, Y, Z, rstride=1, cstride=10,
                     cmap=cm.Oranges, linewidth=0.08, alpha=0.4, antialiased=True)
     return ax
@@ -62,21 +64,26 @@ def tournament_selection(population, minimization, random_state, selection_press
 def geometrical_crossover(solution_A, solution_B, random_state):
     # hint: return Solution(Point(x_child_A, y_child_A)), Solution(Point(x_child_B, y_child_B))
     percentage = random_state.uniform()
-    a = [solution_A.representation.x, solution_A.representation.y, solution_A.representation.z]
-    b = [solution_B.representation.x, solution_B.representation.y, solution_B.representation.z]
-    dist = [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
-    norm = math.sqrt(dist[0] ** 2 + dist[1] ** 2 + dist[2] ** 2)
-    direction = [dist[0] / norm, dist[1] / norm, dist[2] / norm]
-    bullet_vector = [direction[0] * math.sqrt(2), direction[1] * math.sqrt(2), direction[2] * math.sqrt(2)]
-    sol_a = Solution(Point(solution_B.representation.x + (bullet_vector[0] + percentage),
-                           solution_B.representation.x + (bullet_vector[1] + percentage)))
-    sol_b = Solution(Point(solution_B.representation.x + (1-(bullet_vector[0] + percentage)),
-                           solution_B.representation.x + (1-(bullet_vector[1] + percentage))))
-
+    inverse_percentage = 1 - percentage
+    a = [solution_A.representation.x, solution_A.representation.y]
+    b = [solution_B.representation.x, solution_B.representation.y]
+    dist = [a[0] - b[0], a[1] - b[1]]
+    sol_a = Solution(Point(solution_B.representation.x + (dist[0] * percentage),
+                           solution_B.representation.y + (dist[1] * percentage)))
+    sol_b = Solution(Point(solution_B.representation.x + (dist[0] * inverse_percentage),
+                           solution_B.representation.y + (dist[1] * inverse_percentage)))
+    # plt.scatter([solution_A.representation.x, solution_B.representation.x],
+    #             [solution_A.representation.y, solution_B.representation.y], color="red")
+    # plt.scatter([sol_a.representation.x],
+    #             [sol_a.representation.y], color="blue")
+    # plt.scatter([sol_b.representation.x],
+    #             [sol_b.representation.y], color="green")
+    # plt.show()
     return sol_a, sol_b
 
 
 def ball_mutation(solution, random_state, max_step_size=0.1):
     # hint: return Solution(Point(x,y))
-    # Step size ist der mögliche radius in dem der neue punkt ausgehend von dem alten liegen darf. Berechnung mit random uniform distrubtion
-    pass
+    # Step size ist der mögliche radius in dem der neue punkt ausgehend von dem alten liegen darf. Berechnung mit random uniform distrubtion+
+    return Solution(Point(solution.representation.x + random_state.normal(max_step_size / 2, max_step_size),
+                          solution.representation.y + random_state.normal(max_step_size / 2, max_step_size)))
