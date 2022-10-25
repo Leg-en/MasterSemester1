@@ -17,5 +17,17 @@ library(spatstat)
 library(sf)
 library(ggplot2)
 long_data <- longleaf
-plot(data, main=NULL)
+converted_data <- st_as_sf(long_data)
+ggplot(data = converted_data) + geom_sf()
+#geom_sf(data=converted_data)
+#plot(long_data, main=NULL)
+```
+
+Task 2
+```{r}
+no2 <- read_csv(system.file("external/no2.csv",
+    package = "gstat"), show_col_types = FALSE)
+t = st_as_sf(no2, coords = c("station_longitude_deg", "station_latitude_deg"))
+PointPattern = as.ppp(t["NO2"])
+plot(PointPattern)
 ```
