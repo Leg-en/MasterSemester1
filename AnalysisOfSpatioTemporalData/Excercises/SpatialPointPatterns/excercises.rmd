@@ -1,0 +1,21 @@
+---
+title: "Excercises Chapter 10/11"
+output: html_document
+---
+
+## Chapter 10
+Task 1
+
+```{r}
+
+```
+
+## Chapter 11
+Task 1
+```{r}
+library(spatstat)
+library(sf)
+library(ggplot2)
+long_data <- longleaf
+plot(data, main=NULL)
+```
