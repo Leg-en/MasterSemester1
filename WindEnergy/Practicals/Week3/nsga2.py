@@ -10,6 +10,8 @@ from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
 
+BORDER_VAL = 10000
+
 dir = r'input'
 rfile = 'potentialareas_400m_forest.shp'
 
@@ -19,12 +21,16 @@ cols = gdf.columns
 gdf = gdf.rename(columns ={'distance':'distanz_umspannwerk', '_mean': 'energieleistungsdichte'})
 cols = gdf.columns
 gdf_optimization = gdf[['distanz_umspannwerk', 'energieleistungsdichte', 'geometry']]
+area = gdf_optimization["geometry"].area.to_numpy()
 gdf_np = gdf_optimization.to_numpy()
+gdf_np[:,2] = area
+gdf_np = gdf_np[gdf_np[:,2]>BORDER_VAL]
 
 class WindEnergySiteSelectionProblem(Problem):
 
     def __init__(self):
-        super().__init__(n_var=gdf_optimization.shape[0], n_obj=2, n_ieq_constr=0, xl=0.0, xu=1.0)
+        #super().__init__(n_var=gdf_optimization.shape[0], n_obj=2, n_ieq_constr=0, xl=0.0, xu=1.0)
+        super().__init__(n_var=len(gdf_np), n_obj=2, n_ieq_constr=0, xl=0.0, xu=1.0) #Bearbeitet weil v_var nicht mehr gepasst hat
 
     def _evaluate(self, x, out, *args, **kwargs):
         # objective function values are supposed to be written into out["F"]
@@ -46,7 +52,7 @@ class WindEnergySiteSelectionProblem(Problem):
         # example: here it is made sure that x1 + x2 are greater then 1, all negative values indicate invalid solutions.
         #finoa, geopandas zur berechnung
         # geopandas .area methode
-        out["G"] = 1.0 - (x[0] + x[1])
+        #out["G"] = 1.0 - (x[0] + x[1])
 
 algorithm = NSGA2(pop_size=100,
                   sampling=BinaryRandomSampling(),
