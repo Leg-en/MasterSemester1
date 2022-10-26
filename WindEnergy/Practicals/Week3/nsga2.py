@@ -44,6 +44,8 @@ class WindEnergySiteSelectionProblem(Problem):
 
         # constraint values are supposed to be written into out["G"]
         # example: here it is made sure that x1 + x2 are greater then 1, all negative values indicate invalid solutions.
+        #finoa, geopandas zur berechnung
+        # geopandas .area methode
         out["G"] = 1.0 - (x[0] + x[1])
 
 algorithm = NSGA2(pop_size=100,
