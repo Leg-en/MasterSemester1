@@ -85,5 +85,5 @@ def geometrical_crossover(solution_A, solution_B, random_state):
 def ball_mutation(solution, random_state, max_step_size=0.1):
     # hint: return Solution(Point(x,y))
     # Step size ist der mögliche radius in dem der neue punkt ausgehend von dem alten liegen darf. Berechnung mit random uniform distrubtion+
-    return Solution(Point(solution.representation.x + random_state.normal(max_step_size / 2, max_step_size),
-                          solution.representation.y + random_state.normal(max_step_size / 2, max_step_size)))
+    return Solution(Point(solution.representation.x + random_state.uniform(-max_step_size, max_step_size),
+                          solution.representation.y + random_state.uniform(-max_step_size, max_step_size)))
