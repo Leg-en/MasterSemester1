@@ -3,11 +3,21 @@ title: "Excercises Chapter 10/11"
 output: html_document
 ---
 
+Did not had enough time to solve this.
+
+
 ## Chapter 10
 Task 1
 
 ```{r}
-
+library(randomForest)
+library(sf)
+system.file("gpkg/nc.gpkg", package="sf") |>
+    read_sf() -> nc
+nc.32119 <- st_transform(nc, 'EPSG:32119')
+nc |> mutate(SID = SID74/BIR74, NWB = NWBIR74/BIR74) -> nc1
+for_res <- randomForest(SID ~ NWB, nc1)
+plot(for_res$predicted)
 ```
 
 ## Chapter 11
@@ -25,9 +35,17 @@ ggplot(data = converted_data) + geom_sf()
 
 Task 2
 ```{r}
+library(tidyverse)
 no2 <- read_csv(system.file("external/no2.csv",
     package = "gstat"), show_col_types = FALSE)
-t = st_as_sf(no2, coords = c("station_longitude_deg", "station_latitude_deg"))
-PointPattern = as.ppp(t["NO2"])
+t <- st_as_sf(no2, coords = c("station_longitude_deg", "station_latitude_deg"))
+x <- t["NO2"]
+PointPattern <- as.ppp(x)
 plot(PointPattern)
+```
+Task 3
+```{r}
+library(stars)
+star <- st_as_stars(x)
+star$area = st_area(star) # Dont know how to solve the error
 ```
