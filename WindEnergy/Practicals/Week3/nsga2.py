@@ -9,6 +9,7 @@ from pymoo.operators.mutation.bitflip import BitflipMutation
 from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
+import matplotlib.pyplot as plt
 
 BORDER_VAL = 10000
 
@@ -33,6 +34,8 @@ class WindEnergySiteSelectionProblem(Problem):
         super().__init__(n_var=len(gdf_np), n_obj=2, n_ieq_constr=0, xl=0.0, xu=1.0) #Bearbeitet weil v_var nicht mehr gepasst hat
 
     def _evaluate(self, x, out, *args, **kwargs):
+        #Todo: Mindestabtand 4 KM implementieren, Konvergenz Darstellen
+
         # objective function values are supposed to be written into out["F"]
         #example:
         # Array mit 100 elementen was amit jeder zeile verknüpft ist
@@ -64,8 +67,27 @@ problem = WindEnergySiteSelectionProblem()
 
 res = minimize(problem,
                algorithm,
-               ('n_gen', 500),
+               ('n_gen', 100),
                seed=1,
-               verbose=False)
+               verbose=True,
+               save_history=True)
 
-Scatter().add(res.F).show()
+fitness_vals = []
+
+for iteration in res.history:
+    x = []
+    y = []
+    for item in iteration.off:
+        x.append(item.F[0])
+        y.append(item.F[1])
+    fitness_vals.append([x,y])
+np_fitness = np.asarray(fitness_vals)
+
+#Manual Scotter
+plot_val = 40
+plt.scatter(np_fitness[plot_val,0], np_fitness[plot_val,1])
+plt.scatter(res.F[:,0], res.F[:,1])
+plt.show()
+
+#Pymoo scatter
+#Scatter().add(res.F).show()
