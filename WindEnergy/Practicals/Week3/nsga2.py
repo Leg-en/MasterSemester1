@@ -10,8 +10,9 @@ from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from pymoo.visualization.scatter import Scatter
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
-THRESHOLD = 10000
+THRESHOLD = 100000
 
 dir = r'input'
 rfile = 'potentialareas_400m_forest.shp'
@@ -39,7 +40,8 @@ gdf_np = gdf_np[gdf_np[:, 3] > THRESHOLD]
 geometrys = gdf_np[:, 2]
 distance_matrix = np.zeros((geometrys.shape[0], geometrys.shape[0]))
 grid1, grid2 = np.meshgrid(geometrys, geometrys, indexing="ij")
-for i in range(geometrys.shape[0]):
+for i in tqdm(range(geometrys.shape[0])):
+    #print(str((i/geometrys.shape[0]*100)) + "& Fortschritt")
     for j in range(geometrys.shape[0]):
         distance_matrix[i, j] = grid1[i, j].distance(grid2[i, j])
 
