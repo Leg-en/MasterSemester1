@@ -1,18 +1,19 @@
-import geopandas as geop
 import os
+from itertools import combinations
+
+import geopandas as geop
+import matplotlib.pyplot as plt
 import numpy as np
-from pymoo.core.problem import Problem
 from pymoo.algorithms.moo.nsga2 import NSGA2
-from pymoo.problems import get_problem
+from pymoo.core.problem import Problem
 from pymoo.operators.crossover.pntx import TwoPointCrossover
 from pymoo.operators.mutation.bitflip import BitflipMutation
 from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
-from pymoo.visualization.scatter import Scatter
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 THRESHOLD = 100000
+percentage = 10
 
 dir = r'input'
 rfile = 'potentialareas_400m_forest.shp'
@@ -30,23 +31,20 @@ gdf_np = np.insert(gdf_np, 3, area, axis=1)
 # geometry objekte haben einfach eine distance methode
 gdf_np = gdf_np[gdf_np[:, 3] > THRESHOLD]
 
-# for item in np.nditer(gdf_np[:,2], ["refs_ok"]):
-#    val = item.item()
-#    distances = np.empty()
-#    print(item.item().area)
-# print()
+gdf_np = gdf_np[:int(gdf_np.shape[0] * (percentage / 100)), :]
 
-
+# Berechnung der distanzmatrix
 geometrys = gdf_np[:, 2]
 distance_matrix = np.zeros((geometrys.shape[0], geometrys.shape[0]))
 grid1, grid2 = np.meshgrid(geometrys, geometrys, indexing="ij")
 for i in tqdm(range(geometrys.shape[0])):
-    #print(str((i/geometrys.shape[0]*100)) + "& Fortschritt")
+    # print(str((i/geometrys.shape[0]*100)) + "& Fortschritt")
     for j in range(geometrys.shape[0]):
         distance_matrix[i, j] = grid1[i, j].distance(grid2[i, j])
 
-#distance_matrix = np.genfromtxt(f"{THRESHOLD}ThresholdCSV.csv", delimiter=",")
-#print("Distance Matrix Loaded")
+
+# distance_matrix = np.genfromtxt(f"{THRESHOLD}ThresholdCSV.csv", delimiter=",")
+# print("Distance Matrix Loaded")
 
 # Die distanzmatrix enthält jetzt alle relevanten distanz informationen
 
@@ -74,18 +72,7 @@ class WindEnergySiteSelectionProblem(Problem):
 
         out["F"] = np.column_stack([abstand_summe, energie_summe_corrected])
 
-        # Suche alle distanzen die positiv sind
-        DISTANCE_THRESHOLD = 4000
-        distanz_suche = np.where(x, distance_matrix[:, 0], 0)
-        distanz_bools = distanz_suche >= DISTANCE_THRESHOLD
-        distanz_reduces = np.any(distanz_bools == False, axis=1)
-        distanz_ints = distanz_reduces.astype(int)
-        distanz_ints[distanz_ints == 1] = -1
-        distanz_ints[distanz_ints == 0] = 1
-        # constraint values are supposed to be written into out["G"]
-        # example: here it is made sure that x1 + x2 are greater then 1, all negative values indicate invalid solutions.
-        # finoa, geopandas zur berechnung
-        # geopandas .area methode
+        ## Threshold Berechnung
 
         DISTANCE_THRESHOLD = 1000
         constraints = []
@@ -103,7 +90,7 @@ class WindEnergySiteSelectionProblem(Problem):
             constraints.append(curr_val)
         constraints_np = np.asarray(constraints)
 
-    out["G"] = distanz_ints
+        out["G"] = constraints_np
 
 
 algorithm = NSGA2(pop_size=100,
