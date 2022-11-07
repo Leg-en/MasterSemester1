@@ -1,17 +1,18 @@
-import os
-from itertools import combinations
-
 import geopandas as geop
-import matplotlib.pyplot as plt
+import os
 import numpy as np
-from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.core.problem import Problem
+from pymoo.algorithms.moo.nsga2 import NSGA2
+from pymoo.problems import get_problem
 from pymoo.operators.crossover.pntx import TwoPointCrossover
 from pymoo.operators.mutation.bitflip import BitflipMutation
 from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
+from pymoo.visualization.scatter import Scatter
+import matplotlib.pyplot as plt
+from tqdm import tqdm
 
-THRESHOLD = 40000
+THRESHOLD = 100000
 
 dir = r'input'
 rfile = 'potentialareas_400m_forest.shp'
@@ -36,17 +37,16 @@ gdf_np = gdf_np[gdf_np[:, 3] > THRESHOLD]
 # print()
 
 
-# geometrys = gdf_np[:, 2]
-# distance_matrix = np.zeros((geometrys.shape[0], geometrys.shape[0]))
-# grid1, grid2 = np.meshgrid(geometrys, geometrys, indexing="ij")
-# for i in tqdm(range(geometrys.shape[0])):
-#    # print(str((i/geometrys.shape[0]*100)) + "& Fortschritt")
-#    for j in range(geometrys.shape[0]):
-#        distance_matrix[i, j] = grid1[i, j].distance(grid2[i, j])
+geometrys = gdf_np[:, 2]
+distance_matrix = np.zeros((geometrys.shape[0], geometrys.shape[0]))
+grid1, grid2 = np.meshgrid(geometrys, geometrys, indexing="ij")
+for i in tqdm(range(geometrys.shape[0])):
+    #print(str((i/geometrys.shape[0]*100)) + "& Fortschritt")
+    for j in range(geometrys.shape[0]):
+        distance_matrix[i, j] = grid1[i, j].distance(grid2[i, j])
 
-distance_matrix = np.genfromtxt(f"{THRESHOLD}ThresholdCSV.csv", delimiter=",")
-print("Distance Matrix Loaded")
-
+#distance_matrix = np.genfromtxt(f"{THRESHOLD}ThresholdCSV.csv", delimiter=",")
+#print("Distance Matrix Loaded")
 
 # Die distanzmatrix enthält jetzt alle relevanten distanz informationen
 
@@ -75,33 +75,35 @@ class WindEnergySiteSelectionProblem(Problem):
         out["F"] = np.column_stack([abstand_summe, energie_summe_corrected])
 
         # Suche alle distanzen die positiv sind
-
         DISTANCE_THRESHOLD = 4000
-        distanz = []
+        distanz_suche = np.where(x, distance_matrix[:, 0], 0)
+        distanz_bools = distanz_suche >= DISTANCE_THRESHOLD
+        distanz_reduces = np.any(distanz_bools == False, axis=1)
+        distanz_ints = distanz_reduces.astype(int)
+        distanz_ints[distanz_ints == 1] = -1
+        distanz_ints[distanz_ints == 0] = 1
+        # constraint values are supposed to be written into out["G"]
+        # example: here it is made sure that x1 + x2 are greater then 1, all negative values indicate invalid solutions.
+        # finoa, geopandas zur berechnung
+        # geopandas .area methode
 
-        # print("Starting Constraint Check...")
-
-        # def permutations(item):
-        #    d = distance_matrix[item[0], item[1]]
-
-        for idx, i in enumerate(x):
-            # temp = []
-            # for idx2, item in enumerate(i):
-            #    if item:
-            #        temp.append(idx2)
-            temp = np.where(i == True)
-            temp = list(temp)[0].tolist()
-            permut = list(combinations(temp, 2))
-            iter_val = 1
-            for val in permut:
-                d = distance_matrix[val[0], val[1]]
-                if DISTANCE_THRESHOLD > d:
-                    iter_val = -1
+        DISTANCE_THRESHOLD = 1000
+        constraints = []
+        true_indices = np.asarray(list(zip(*np.where(x))))
+        for val in range(len(x)):
+            item_indices = [item for item in true_indices if item[0] == val]
+            indices = np.asarray(item_indices)
+            combs = np.asarray(list(combinations(indices[:, 1], 2)))
+            curr_val = 1
+            for item in combs:
+                distance = distance_matrix[item[0], item[1]]
+                if distance < DISTANCE_THRESHOLD:
+                    curr_val = -1
                     break
-            distanz.append(iter_val)
-        distanz = np.asarray(distanz)
+            constraints.append(curr_val)
+        constraints_np = np.asarray(constraints)
 
-        out["G"] = distanz
+    out["G"] = distanz_ints
 
 
 algorithm = NSGA2(pop_size=100,
@@ -114,7 +116,7 @@ problem = WindEnergySiteSelectionProblem()
 
 res = minimize(problem,
                algorithm,
-               ('n_gen', 500),
+               ('n_gen', 100),
                seed=1,
                verbose=True,
                save_history=True)
