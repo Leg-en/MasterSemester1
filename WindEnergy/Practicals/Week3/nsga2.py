@@ -1,4 +1,5 @@
 import os
+import pickle
 from itertools import combinations
 
 import geopandas as geop
@@ -12,7 +13,7 @@ from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from tqdm import tqdm
 
-THRESHOLD = 100000
+THRESHOLD = 1000
 percentage = 10
 
 dir = r'input'
@@ -32,6 +33,7 @@ gdf_np = np.insert(gdf_np, 3, area, axis=1)
 gdf_np = gdf_np[gdf_np[:, 3] > THRESHOLD]
 
 gdf_np = gdf_np[:int(gdf_np.shape[0] * (percentage / 100)), :]
+
 
 # Berechnung der distanzmatrix
 geometrys = gdf_np[:, 2]
@@ -83,8 +85,7 @@ class WindEnergySiteSelectionProblem(Problem):
             combs = np.asarray(list(combinations(indices[:, 1], 2)))
             curr_val = 1
             for item in combs:
-                distance = distance_matrix[item[0], item[1]]
-                if distance < DISTANCE_THRESHOLD:
+                if distance_matrix[item[0], item[1]] < DISTANCE_THRESHOLD:
                     curr_val = -1
                     break
             constraints.append(curr_val)
@@ -108,6 +109,9 @@ res = minimize(problem,
                verbose=True,
                save_history=True)
 
+with open("result2.pkl", "wb") as out:
+    pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
+
 fitness_vals = []
 
 for iteration in res.history:
@@ -120,7 +124,7 @@ for iteration in res.history:
 np_fitness = np.asarray(fitness_vals)
 
 # Manual Scotter
-plot_val = 40
+plot_val = 10
 plt.scatter(np_fitness[plot_val, 0], np_fitness[plot_val, 1])
 plt.scatter(res.F[:, 0], res.F[:, 1])
 plt.show()
