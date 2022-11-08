@@ -1,6 +1,7 @@
 import os
 import pickle
 from itertools import combinations
+
 import geopandas as geop
 import matplotlib.pyplot as plt
 import numpy as np
@@ -32,8 +33,6 @@ gdf_np = np.insert(gdf_np, 3, area, axis=1)
 gdf_np = gdf_np[gdf_np[:, 3] > THRESHOLD]
 
 gdf_np = gdf_np[:int(gdf_np.shape[0] * (percentage / 100)), :]
-
-
 
 try:
     with open(f"{THRESHOLD}_AREA_{percentage}_PERC_DIST_MAT.npy", "rb") as f:
@@ -83,10 +82,7 @@ class WindEnergySiteSelectionProblem(Problem):
         constraints = []
         true_indices = np.asarray(list(zip(*np.where(x))))
         for val in range(len(x)):
-            #item_indices = [item for item in true_indices if item[0] == val]
-            #indices = np.asarray(item_indices)
-            indices = true_indices[true_indices[:,0] == val]
-            #print(np.array_equal(indices2, indices))
+            indices = true_indices[true_indices[:, 0] == val]
             combs = combinations(indices[:, 1], 2)
             curr_val = 1
             for item in combs:
@@ -109,7 +105,7 @@ problem = WindEnergySiteSelectionProblem()
 
 res = minimize(problem,
                algorithm,
-               ('n_gen', 200),
+               ('n_gen', 100),
                seed=1,
                verbose=True,
                save_history=True)
@@ -129,11 +125,20 @@ for iteration in res.history:
 np_fitness = np.asarray(fitness_vals)
 
 # Manual Scotter
-plot_val = [50, 100, 150]
+plot_val = [1, 10, 30, 50, 100, 150]
 for i in plot_val:
     plt.scatter(np_fitness[i, 0], np_fitness[i, 1])
 plt.scatter(res.F[:, 0], res.F[:, 1])
 plt.show()
+
+# Konvergenz plot von Pymoo
+# n_evals = np.array([e.evaluator.n_eval for e in res.history])
+# opt = np.array([e.opt[0].F for e in res.history])
+#
+# plt.title("Convergence")
+# plt.plot(n_evals, opt, "--")
+# plt.yscale("log")
+# plt.show()
 
 # Pymoo scatter
 # Scatter().add(res.F).show()
