@@ -33,7 +33,6 @@ geometrys = gdf_np[:, 2]
 distance_matrix = np.zeros((geometrys.shape[0], geometrys.shape[0]))
 grid1, grid2 = np.meshgrid(geometrys, geometrys, indexing="ij")
 for i in tqdm(range(geometrys.shape[0])):
-    # print(str((i/geometrys.shape[0]*100)) + "& Fortschritt")
     for j in range(geometrys.shape[0]):
         distance_matrix[i, j] = grid1[i, j].distance(grid2[i, j])
 with open(f"{THRESHOLD}_AREA_{percentage}_PERC_DIST_MAT.npy", "wb") as f:

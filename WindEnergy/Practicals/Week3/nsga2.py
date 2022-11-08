@@ -1,7 +1,6 @@
 import os
 import pickle
 from itertools import combinations
-
 import geopandas as geop
 import matplotlib.pyplot as plt
 import numpy as np
@@ -34,8 +33,6 @@ gdf_np = gdf_np[gdf_np[:, 3] > THRESHOLD]
 
 gdf_np = gdf_np[:int(gdf_np.shape[0] * (percentage / 100)), :]
 
-# distance_matrix = np.genfromtxt(f"{THRESHOLD}ThresholdCSV.csv", delimiter=",")
-# print("Distance Matrix Loaded")
 
 
 try:
@@ -48,7 +45,6 @@ except FileNotFoundError:
     distance_matrix = np.zeros((geometrys.shape[0], geometrys.shape[0]))
     grid1, grid2 = np.meshgrid(geometrys, geometrys, indexing="ij")
     for i in tqdm(range(geometrys.shape[0])):
-        # print(str((i/geometrys.shape[0]*100)) + "& Fortschritt")
         for j in range(geometrys.shape[0]):
             distance_matrix[i, j] = grid1[i, j].distance(grid2[i, j])
     with open(f"{THRESHOLD}_AREA_{percentage}_PERC_DIST_MAT.npy", "wb") as f:
@@ -87,9 +83,11 @@ class WindEnergySiteSelectionProblem(Problem):
         constraints = []
         true_indices = np.asarray(list(zip(*np.where(x))))
         for val in range(len(x)):
-            item_indices = [item for item in true_indices if item[0] == val]
-            indices = np.asarray(item_indices)
-            combs = np.asarray(list(combinations(indices[:, 1], 2)))
+            #item_indices = [item for item in true_indices if item[0] == val]
+            #indices = np.asarray(item_indices)
+            indices = true_indices[true_indices[:,0] == val]
+            #print(np.array_equal(indices2, indices))
+            combs = combinations(indices[:, 1], 2)
             curr_val = 1
             for item in combs:
                 if distance_matrix[item[0], item[1]] < DISTANCE_THRESHOLD:
@@ -131,8 +129,9 @@ for iteration in res.history:
 np_fitness = np.asarray(fitness_vals)
 
 # Manual Scotter
-plot_val = 10
-plt.scatter(np_fitness[plot_val, 0], np_fitness[plot_val, 1])
+plot_val = [50, 100, 150]
+for i in plot_val:
+    plt.scatter(np_fitness[i, 0], np_fitness[i, 1])
 plt.scatter(res.F[:, 0], res.F[:, 1])
 plt.show()
 
