@@ -44,8 +44,10 @@ except FileNotFoundError:
     distance_matrix = np.zeros((geometrys.shape[0], geometrys.shape[0]))
     grid1, grid2 = np.meshgrid(geometrys, geometrys, indexing="ij")
     for i in tqdm(range(geometrys.shape[0])):
-        for j in range(geometrys.shape[0]):
-            distance_matrix[i, j] = grid1[i, j].distance(grid2[i, j])
+        for j in range(i):
+            d = grid1[i, j].distance(grid2[i, j])
+            distance_matrix[i, j] = d
+            distance_matrix[j, i] = d
     with open(f"{THRESHOLD}_AREA_{percentage}_PERC_DIST_MAT.npy", "wb") as f:
         np.save(f, distance_matrix)
 
