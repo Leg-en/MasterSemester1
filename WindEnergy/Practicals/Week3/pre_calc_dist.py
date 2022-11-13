@@ -4,7 +4,7 @@ import geopandas as geop
 import numpy as np
 from tqdm import tqdm
 
-THRESHOLD = 1000
+THRESHOLD = 4000
 percentage = 100
 
 dir = r'input'
@@ -32,11 +32,10 @@ gdf_np = gdf_np[:int(gdf_np.shape[0] * (percentage / 100)), :]
 print("Kalkuliere Matrix")
 geometrys = gdf_np[:, 2]
 distance_matrix = np.zeros((geometrys.shape[0], geometrys.shape[0]))
-grid1, grid2 = np.meshgrid(geometrys, geometrys, indexing="ij")
 for i in tqdm(range(geometrys.shape[0])):
     for j in range(i):
-        d = grid1[i, j].distance(grid2[i, j])
+        d = geometrys[i].distance(geometrys[j])
         distance_matrix[i, j] = d
         distance_matrix[j, i] = d
-with open(f"{THRESHOLD}_AREA_{percentage}_PERC_DIST_MAT.npy", "wb") as f:
+with open(f"{THRESHOLD}_AREA_{percentage}_PERC_DIST_MAT_NEW.npy", "wb") as f:
     np.save(f, distance_matrix)

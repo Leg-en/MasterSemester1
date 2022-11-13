@@ -13,7 +13,7 @@ from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from tqdm import tqdm
 
-THRESHOLD = 1000
+THRESHOLD = 4000
 percentage = 100
 
 dir = r'input'
@@ -35,20 +35,19 @@ gdf_np = gdf_np[gdf_np[:, 3] > THRESHOLD]
 gdf_np = gdf_np[:int(gdf_np.shape[0] * (percentage / 100)), :]
 
 try:
-    with open(f"{THRESHOLD}_AREA_{percentage}_PERC_DIST_MAT.npy", "rb") as f:
+    with open(f"{THRESHOLD}_AREA_{percentage}_PERC_DIST_MAT_NEW.npy", "rb") as f:
         distance_matrix = np.load(f)
     print("Vorkalkulierte Distanz Matrix gefunden und geladen")
 except FileNotFoundError:
     print("Keine Vorkalkulierte Distanz Matrix gefunden")
     geometrys = gdf_np[:, 2]
     distance_matrix = np.zeros((geometrys.shape[0], geometrys.shape[0]))
-    grid1, grid2 = np.meshgrid(geometrys, geometrys, indexing="ij")
     for i in tqdm(range(geometrys.shape[0])):
         for j in range(i):
-            d = grid1[i, j].distance(grid2[i, j])
+            d = geometrys[i].distance(geometrys[j])
             distance_matrix[i, j] = d
             distance_matrix[j, i] = d
-    with open(f"{THRESHOLD}_AREA_{percentage}_PERC_DIST_MAT.npy", "wb") as f:
+    with open(f"{THRESHOLD}_AREA_{percentage}_PERC_DIST_MAT_NEW.npy", "wb") as f:
         np.save(f, distance_matrix)
 
 
@@ -127,7 +126,7 @@ for iteration in res.history:
 np_fitness = np.asarray(fitness_vals)
 
 # Manual Scotter
-plot_val = [1, 10, 30, 50, 100, 150]
+plot_val = [1, 10, 30, 50]
 for i in plot_val:
     plt.scatter(np_fitness[i, 0], np_fitness[i, 1])
 plt.scatter(res.F[:, 0], res.F[:, 1])
