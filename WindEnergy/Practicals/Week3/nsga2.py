@@ -57,11 +57,46 @@ class WindEnergySiteSelectionProblem(Problem):
 
     def __init__(self):
         # super().__init__(n_var=gdf_optimization.shape[0], n_obj=2, n_ieq_constr=0, xl=0.0, xu=1.0)
-        super().__init__(n_var=len(gdf_np), n_obj=2, n_ieq_constr=1, xl=0.0,
+        super().__init__(n_var=len(gdf_np), n_obj=2, n_ieq_constr=0, xl=0.0,
                          xu=1.0)  # Bearbeitet weil v_var nicht mehr gepasst hat
 
     def _evaluate(self, x, out, *args, **kwargs):
-        # Todo: Mindestabtand 4 KM implementieren, Konvergenz Darstellen
+        DISTANCE_THRESHOLD = 4000
+
+        def correct(x1, y1, y2):
+            # Statisch immer das erste element auf False setzen
+            # Todo: Durch was sinnvolles ersetzen
+            x[x1, y1] = False
+
+        # def regenerate(true_indices):
+        #     for val in range(len(x)):
+        #         indices = true_indices[true_indices[:, 0] == val]
+        #         combs = combinations(indices[:, 1], 2)
+        #         for item in combs:
+        #             if distance_matrix[item[0], item[1]] < DISTANCE_THRESHOLD:
+        #                 correct(val, item[0], item[1])
+
+        # true_indices = np.asarray(list(zip(*np.where(x))))
+        # regenerate(true_indices)
+
+        def regenerate(val):
+            true_indices = np.asarray(list(zip(*np.where(x[val, :]))))
+            combs = combinations(true_indices[:], 2)
+            combs_np = np.asarray(list(combs))
+            combs_reshaped = combs_np.reshape((combs_np.shape[0], 2))
+            for item in combs_reshaped:
+                if distance_matrix[item[0], item[1]] < DISTANCE_THRESHOLD:
+                    correct(val, item[0], item[1])
+                    regenerate(val)
+                    break
+
+        for val in tqdm(range(len(x))):
+            regenerate(val)
+
+        # true_indices2 = np.asarray(list(zip(*np.where(x[0, :]))))
+        # combs2 = combinations(true_indices2[:], 2)
+        # np_combs2 = np.asarray(combs2_list)
+        # np2 = np_combs2.reshape((30807325, 2))
 
         # objective function values are supposed to be written into out["F"]
         # example:
@@ -79,21 +114,7 @@ class WindEnergySiteSelectionProblem(Problem):
 
         ## Threshold Berechnung
 
-        DISTANCE_THRESHOLD = 1000
-        constraints = []
-        true_indices = np.asarray(list(zip(*np.where(x))))
-        for val in range(len(x)):
-            indices = true_indices[true_indices[:, 0] == val]
-            combs = combinations(indices[:, 1], 2)
-            curr_val = 1
-            for item in combs:
-                if distance_matrix[item[0], item[1]] < DISTANCE_THRESHOLD:
-                    curr_val = -1
-                    break
-            constraints.append(curr_val)
-        constraints_np = np.asarray(constraints)
-
-        out["G"] = constraints_np
+        # out["G"] = constraints_np
 
 
 algorithm = NSGA2(pop_size=100,
