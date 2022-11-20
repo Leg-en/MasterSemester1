@@ -1,6 +1,5 @@
 import os
 import pickle
-from itertools import combinations
 
 import geopandas as geop
 import matplotlib.pyplot as plt
@@ -80,18 +79,22 @@ class WindEnergySiteSelectionProblem(Problem):
         # regenerate(true_indices)
 
         def regenerate(val):
-            true_indices = np.asarray(list(zip(*np.where(x[val, :]))))
-            combs = combinations(true_indices[:], 2)
-            combs_np = np.asarray(list(combs))
-            combs_reshaped = combs_np.reshape((combs_np.shape[0], 2))
+            # true_indices = np.asarray(list(zip(*np.where(x[val, :]))))
+            # combs = combinations(true_indices[:], 2)
+            # combs_np = np.asarray(list(combs))
+            # combs_reshaped = combs_np.reshape((combs_np.shape[0], 2))
+
+            indices = np.where(x[val, :])
+            combs_reshaped = np.array(np.meshgrid(indices, indices)).T.reshape(-1, 2)
+
             for item in combs_reshaped:
                 if distance_matrix[item[0], item[1]] < DISTANCE_THRESHOLD:
                     correct(val, item[0], item[1])
                     regenerate(val)
                     break
 
-        for val in tqdm(range(len(x))):
-            regenerate(val)
+        for z in tqdm(range(len(x))):
+            regenerate(z)
 
         # true_indices2 = np.asarray(list(zip(*np.where(x[0, :]))))
         # combs2 = combinations(true_indices2[:], 2)
