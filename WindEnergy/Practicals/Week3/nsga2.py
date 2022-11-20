@@ -1,5 +1,6 @@
 import os
 import pickle
+from itertools import combinations
 
 import geopandas as geop
 import matplotlib.pyplot as plt
@@ -66,6 +67,7 @@ class WindEnergySiteSelectionProblem(Problem):
             # Statisch immer das erste element auf False setzen
             # Todo: Durch was sinnvolles ersetzen
             x[x1, y1] = False
+            return y1
 
         # def regenerate(true_indices):
         #     for val in range(len(x)):
@@ -85,13 +87,17 @@ class WindEnergySiteSelectionProblem(Problem):
             # combs_reshaped = combs_np.reshape((combs_np.shape[0], 2))
 
             indices = np.where(x[val, :])
-            combs_reshaped = np.array(np.meshgrid(indices, indices)).T.reshape(-1, 2)
+            combs = combinations(indices[0], 2)
 
-            for item in combs_reshaped:
-                if distance_matrix[item[0], item[1]] < DISTANCE_THRESHOLD:
-                    correct(val, item[0], item[1])
-                    regenerate(val)
-                    break
+            corrected = np.zeros((0))
+
+            for item in combs:
+                if distance_matrix[item[0], item[1]] < DISTANCE_THRESHOLD and item[0] not in corrected and item[
+                    1] not in corrected:
+                    c_val = correct(val, item[0], item[1])
+                    corrected = np.append(corrected, c_val)
+                    # regenerate(val)
+                    # break
 
         for z in tqdm(range(len(x))):
             regenerate(z)
@@ -120,7 +126,7 @@ class WindEnergySiteSelectionProblem(Problem):
         # out["G"] = constraints_np
 
 
-algorithm = NSGA2(pop_size=100,
+algorithm = NSGA2(pop_size=10,
                   sampling=BinaryRandomSampling(),
                   crossover=TwoPointCrossover(),
                   mutation=BitflipMutation(),
