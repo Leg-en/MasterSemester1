@@ -2,7 +2,7 @@ import multiprocessing
 import os
 import pickle
 from itertools import combinations
-
+from pymoo.core.callback import Callback
 import geopandas as geop
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,7 +15,7 @@ from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 from tqdm import tqdm
 
-THRESHOLD = 4000
+THRESHOLD = 1000
 percentage = 100
 
 dir = r'input'
@@ -93,6 +93,17 @@ class WindEnergySiteSelectionProblem(ElementwiseProblem):
         # out["G"] = constraints_np
 
 
+class MyCallback(Callback):
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.opt = {}
+
+    def notify(self, algorithm):
+        print("Callback")
+        self.opt[algorithm.n_gen] = algorithm.opt
+        print()
+
 def main():
     algorithm = NSGA2(pop_size=100,
                       sampling=BinaryRandomSampling(),
@@ -101,20 +112,24 @@ def main():
                       eliminate_duplicates=True)
 
     n_proccess = 8
-    pool = multiprocessing.Pool(n_proccess)
-    runner = StarmapParallelization(pool.starmap)
+    #pool = multiprocessing.Pool(n_proccess)
+    #runner = StarmapParallelization(pool.starmap)
 
-    problem = WindEnergySiteSelectionProblem(elementwise_runner=runner)
-
+    #problem = WindEnergySiteSelectionProblem(elementwise_runner=runner)
+    problem = WindEnergySiteSelectionProblem()
+    callback = MyCallback()
     res = minimize(problem,
                    algorithm,
-                   ('n_gen', 100),
+                   callback=callback,
+                   termination=('n_gen', 100),
                    seed=1,
                    verbose=True)
 
     with open("result2.pkl", "wb") as out:
         pickle.dump(res, out, pickle.HIGHEST_PROTOCOL)
 
+    with open("callback.pkl", "wb") as out:
+        pickle.dump(callback, out, pickle.HIGHEST_PROTOCOL)
     fitness_vals = []
 
     for iteration in res.history:
