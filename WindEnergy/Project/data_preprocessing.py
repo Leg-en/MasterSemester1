@@ -28,7 +28,7 @@ analysis.PairwiseBuffer(Clipped, Area_Flurstuecke_bufferd, "-15 Meters", "NONE",
 
 # Ab hier ist die erfüllung des Constraints von mindestens 50m abstand zu einander
 bestehend_buffered = processed_data + r"\bestehend_buffered"
-analysis.PairwiseBuffer(Area_Flurstuecke_bufferd, bestehend_buffered, "50 Meters", "NONE", None, "PLANAR", "0 Meters")
+analysis.PairwiseBuffer(potential_areas, bestehend_buffered, "50 Meters", "NONE", None, "PLANAR", "0 Meters")
 
 buffered_intersects = processed_data + r"\buffered_intersects"
 analysis.PairwiseIntersect(bestehend_buffered, buffered_intersects, "ALL", None, "INPUT")
